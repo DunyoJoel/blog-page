@@ -1,30 +1,61 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import Menu from '../components/Menu';
 import Delete from "../img/delete.png";
 import Edit from "../img/edit.png";
+import { useState,useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import axios from "axios";
+import moment from "moment"
+import { useContext } from 'react';
+import { AuthContext } from '../context/authContext';
 
 const Single = () => {
+    const [post, setPost] = useState({});
+    const location = useLocation();
+    const navigate = useNavigate();
+    const postId  = location.pathname.split("/")[2];
+    const {currentUser} = useContext(AuthContext)
+    
+    useEffect(() => {
+     const fetchData = async () =>{
+      try {
+        const res = await axios.get(`/posts${postId}`)
+        setPost(res.data)
+      } catch (err) {
+        console.log(err)
+      }
+     }
+     fetchData();
+    }, [postId])
+    // function to handle delete
+    const handleDelete = async ()=>{
+      try {
+        await axios.delete(`/posts${postId}`)
+        navigate("/")
+      } catch (err) {
+        console.log(err)
+      }
+    }
   return (
     <div className='single'>
         <div className='content'>
            
-            <img src='https://img.freepik.com/free-psd/squares-cards-mockup_211682-285.jpg?size=626&ext=jpg&uid=R12279054&ga=GA1.2.1598920660.1651588790' alt=''/>
+            <img src={post?.img} alt=""/>
             <div className='user'>
-                <img src='https://img.freepik.com/free-photo/happy-positive-young-women-show-peace-gesture-v-sign-exclaim-positively-dressed-casual-clothes-have-fun-pose-indoor-against-vivid-yellow-background-victory-symbol-body-language-concept_273609-61512.jpg?size=626&ext=jpg&uid=R12279054&ga=GA1.2.1598920660.1651588790&semt=sph' alt=''/>
+                {post.userImg && <img src={post.userImg}/>}
                 <div className='info'>
-                    <span>Joe</span>
-                    <p>Posted 3 days ago</p>
-                </div>
-                <div className='edit'>
+                    <span>{post.username}</span>
+                    <p>Posted {moment(post.date).fromNow()}</p>
+                </div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                {currentUser.username === post.username && (<div className='edit'>
                     <Link to={`/write/edit=2`}>
                     <img src={Edit} alt=""/>
                     </Link>
-                    <img src={Delete} alt=""/>
-                </div>
+                    <img onClick={handleDelete} src={Delete} alt=""/>
+                </div>)}
             </div>
-            <h1>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been t</h1>
-            <p>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default</p>
+            <h1>{post.title}</h1>
+            {post.desc}
         </div>
         <div className='menu'>
             <Menu/>
